@@ -1,0 +1,15 @@
+[project]
+	type = "plugin"
+	name = "console-plugin"
+	description = "Serial console plugin"
+	version = "1.0.0" 
+	
+	entrypoint = "console_plugin/build.py"
+
+[packaging]
+	include = [
+		"console_plugin"
+	]
+	exclude = [
+		"*.pyc"
+	]

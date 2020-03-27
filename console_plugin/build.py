@@ -4,7 +4,6 @@ import extargparse
 import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-print(sys.path)
 import console_plugin.build_commands.console
 
 def init_parser(parentparser, config):

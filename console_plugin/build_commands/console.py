@@ -12,7 +12,7 @@ import subprocess
 def init_parser(parentparser, config):
     parser = parentparser.add_parser('console', help='Open console')
     parser.add_argument('-t', '--tty', default="ttyUSB0", help='TTY to use (default ttyUSB0)')
-    parser.add_argument('-b', '--baud',  type=int, default=9600, help='RS232 speed to use (default 9600)')
+    parser.add_argument('-b', '--baud',  type=int, default=115200, help='RS232 speed to use (default 115200)')
     parser.add_argument('-c', '--echo', action='store_true', default=False, help='Echo input data on screen')
     parser.set_defaults(func=project_console)
 
@@ -21,6 +21,7 @@ def init_parser(parentparser, config):
 
     console_command = Command('console', console_plugin.build_commands.console, subparser, {})
     console_command.register()
+    console_command.add_parent('debug', config)
     console_command.add_parent('flash', config)
 
 def project_console(args, config, **kwargs):

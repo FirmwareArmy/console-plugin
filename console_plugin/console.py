@@ -32,10 +32,9 @@ def console(ctx, tty, baud, echo, **kwargs):
             "--omap=crlf",
             "--escape=a"
         ]
-
+        
+        # TODO add check picocom is installed
         subprocess.check_call(command+opts)
-#        subprocess.check_call(['vi'])
-
     except Exception as e:
         print_stack()
         log.error(f"{e}")

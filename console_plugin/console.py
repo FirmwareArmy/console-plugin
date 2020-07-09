@@ -2,13 +2,24 @@ from army.api.click import verbose_option
 from army.api.debugtools import print_stack
 from army.api.log import log, get_log_level
 from army.army import cli, build
+import console_plugin
 import click
 import subprocess
 
+# load plugin default values
+default_tty = "ttyUSB0"
+default_baud = "115200"
+
+if console_plugin.args and 'tty' in console_plugin.args:
+    default_tty = console_plugin.args['tty']
+
+if console_plugin.args and 'baud' in console_plugin.args:
+    default_baud = console_plugin.args['baud']
+
 @build.command(name='console', help='Open console')
 @verbose_option()
-@click.option('-t', '--tty', default="ttyUSB0", help='TTY to use (default ttyUSB0)')
-@click.option('-b', '--baud', default=115200, help='RS232 speed to use (default 115200)')
+@click.option('-t', '--tty', default=default_tty, help='TTY to use', show_default=True)
+@click.option('-b', '--baud', default=default_baud, help='RS232 speed to use', show_default=True)
 @click.option('-c', '--echo', help='Echo input data on screen', is_flag=True)
 @click.pass_context
 def console(ctx, tty, baud, echo, **kwargs):
@@ -17,16 +28,16 @@ def console(ctx, tty, baud, echo, **kwargs):
     print("Use ctrl-a to send content to serial")
     
     opts = []
-    if args.echo==True:
+    if echo==True:
         opts.append("-c")
 
 #sudo xterm -j -rightbar -sb -si -sk -sl 99999 -e picocom /dev/$opt_tty -b $opt_baud -l --imap=lfcrlf --omap=crlf --escape='a' --echo
 
-
+    
     try: 
         command = [
-            "picocom", f"/dev/{args.tty}",
-            "-b", f"{args.baud}",
+            "picocom", f"/dev/{tty}",
+            "-b", f"{baud}",
             "-l",
             "--imap=lfcrlf",
             "--omap=crlf",

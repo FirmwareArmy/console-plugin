@@ -1,7 +1,7 @@
 from army.api.click import verbose_option 
 from army.api.debugtools import print_stack
 from army.api.log import log, get_log_level
-from army.army import cli, build
+from army import cli, build
 import console_plugin
 import click
 import subprocess

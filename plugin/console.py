@@ -1,29 +1,33 @@
-from army.api.click import verbose_option 
+from army.api.command import parser, group, command, option, argument
 from army.api.debugtools import print_stack
 from army.api.log import log, get_log_level
-from army import cli, build
-import console_plugin
-import click
+from army.api.package import load_project_packages, load_installed_package
+from army.api.project import load_project
+import os
+import re
+# from subprocess import Popen, PIPE, STDOUT
 import subprocess
+import sys
 import shutil
 
 # load plugin default values
 default_tty = "ttyUSB0"
 default_baud = "115200"
 
-if console_plugin.args and 'tty' in console_plugin.args:
-    default_tty = console_plugin.args['tty']
+# TODO
+# if console_plugin.args and 'tty' in console_plugin.args:
+#     default_tty = console_plugin.args['tty']
+# 
+# if console_plugin.args and 'baud' in console_plugin.args:
+#     default_baud = console_plugin.args['baud']
 
-if console_plugin.args and 'baud' in console_plugin.args:
-    default_baud = console_plugin.args['baud']
-
-@build.command(name='console', help='Open console')
-@verbose_option()
-@click.option('-t', '--tty', default=default_tty, help='TTY to use', show_default=True)
-@click.option('-b', '--baud', default=default_baud, help='RS232 speed to use', show_default=True)
-@click.option('-c', '--echo', help='Echo input data on screen', is_flag=True)
-@click.option('-d', '--detach', help='Detach console in a window', is_flag=True)
-@click.pass_context
+@parser
+@group(name="build")
+@command(name='console', help='Open tty console')
+@option(shortcut='t', name='tty', value='tty', default=default_tty, help='TTY to use')
+@option(shortcut='b', name='baud', value='VALUE', default=default_baud, help='RS232 speed to use')
+@option(shortcut='c', name='echo', help='Echo input data on screen', flag=True, default=True)
+@option(shortcut='d', name='detach', help='Detach console in a window', flag=True, default=False)
 def console(ctx, tty, baud, echo, detach, **kwargs):
     log.info(f"console")
     
@@ -33,7 +37,6 @@ def console(ctx, tty, baud, echo, detach, **kwargs):
     if echo==True:
         opts.append("-c")
 
-#sudo xterm -j -rightbar -sb -si -sk -sl 99999 -e picocom /dev/$opt_tty -b $opt_baud -l --imap=lfcrlf --omap=crlf --escape='a' --echo
     command = []
 
     picocom = shutil.which("picocom")
@@ -77,4 +80,4 @@ def console(ctx, tty, baud, echo, detach, **kwargs):
     except Exception as e:
         print_stack()
         log.error(f"{e}")
-
+        exit(1)

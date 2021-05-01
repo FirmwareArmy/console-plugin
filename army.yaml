@@ -1,0 +1,15 @@
+name: console-plugin
+description: Serial console plugin
+version: 1.0.1
+
+packaging:
+  include:
+  - plugin
+  exclude:
+  - "*.pyc"
+
+profiles:
+- console
+
+plugins: 
+- plugin

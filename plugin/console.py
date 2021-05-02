@@ -9,6 +9,19 @@ import re
 import subprocess
 import sys
 import shutil
+from time import sleep
+
+def to_relative_path(path):
+    home = os.path.expanduser("~")
+    abspath = os.path.abspath(path)
+    if abspath.startswith(home):
+        path = abspath.replace(home, "~", 1)
+    cwd = os.path.abspath(os.path.expanduser(os.getcwd()))
+    if abspath.startswith(cwd):
+        path = os.path.relpath(abspath, cwd)
+    return path
+ 
+tools_path = os.path.expanduser(to_relative_path(os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))))
 
 # load plugin default values
 default_tty = "ttyUSB0"
@@ -31,13 +44,15 @@ default_baud = "115200"
 def console(ctx, tty, baud, echo, detach, **kwargs):
     log.info(f"console")
     
+    global tools_path
+    
     print("Use ctrl-a to send content to serial")
     
     opts = []
     if echo==True:
         opts.append("-c")
 
-    command = []
+    picocom_command = []
 
     picocom = shutil.which("picocom")
     if picocom is None:
@@ -45,23 +60,7 @@ def console(ctx, tty, baud, echo, detach, **kwargs):
         return 
     
     try: 
-        if detach==True:
-            xterm = shutil.which("xterm")
-            if xterm is None:
-                print(f"xterm: not found, you can install it with 'sudo apt-get install xterm'")
-                return 
-            command += [
-                "xterm",
-                "-j",
-                "-rightbar",
-                "-sb",
-                "-si",
-                "-sk",
-                "-sl", "99999",
-                "-e"
-            ]
-
-        command += [
+        picocom_command += [
             "picocom", f"/dev/{tty}",
             "-b", f"{baud}",
             "-l",
@@ -70,13 +69,46 @@ def console(ctx, tty, baud, echo, detach, **kwargs):
             "--escape=a"
         ]
         
-        command += opts
+        picocom_command += opts
         
         if detach==True:
-            command += ["&"]
+#             xterm = shutil.which("xterm")
+#             if xterm is None:
+#                 print(f"xterm: not found, you can install it with 'sudo apt-get install xterm'")
+#                 return 
+#             command += [
+#                 "nohup",
+#                 "xterm",
+#                 "-j",
+#                 "-rightbar",
+#                 "-sb",
+#                 "-si",
+#                 "-sk",
+#                 "-sl", "99999",
+#                 "-e"
+#             ]
 
-        # TODO add check picocom is installed
-        subprocess.check_call(command)
+            terminator = shutil.which("terminator")
+            if terminator is None:
+                print(f"terminator: not found, you can install it with 'sudo apt-get install terminator'")
+                return 
+            command = [
+                "terminator",
+                "--no-dbus",
+                "--command",
+                ' '.join([f'{tools_path}/plugin/daemon.sh']+picocom_command),
+            ]
+
+            log.debug(" ".join(command))
+            subprocess.Popen(command, start_new_session=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT
+                    )
+            sleep(1)
+        else:
+            log.debug(" ".join(picocom_command))
+            subprocess.check_call(picocom_command)
+
     except Exception as e:
         print_stack()
         log.error(f"{e}")
